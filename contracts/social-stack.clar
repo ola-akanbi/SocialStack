@@ -319,3 +319,43 @@
         )
     )
 )
+
+;; Privacy settings updater
+(define-public (update-advanced-privacy-settings
+    (friend-list-visible bool)
+    (status-visible bool)
+    (metadata-visible bool)
+    (last-seen-visible bool)
+    (profile-image-visible bool)
+    (encryption-enabled bool))
+    (let
+        (
+            (caller tx-sender)
+        )
+        (asserts! (check-active-user caller) ERR_DEACTIVATED)
+        (asserts! (check-rate-limit caller u2) ERR_RATE_LIMITED)
+        
+        (map-set UserPrivacy
+            caller
+            {
+                friend-list-visible: friend-list-visible,
+                status-visible: status-visible,
+                metadata-visible: metadata-visible,
+                last-seen-visible: last-seen-visible,
+                profile-image-visible: profile-image-visible,
+                encryption-enabled: encryption-enabled,
+                last-updated: stacks-block-height
+            }
+        )
+        
+        (update-rate-limit caller u2)
+        (update-user-activity caller)
+        
+        (print {
+            event: "privacy-updated",
+            user: caller,
+            timestamp: stacks-block-height
+        })
+        (ok true)
+    )
+)
