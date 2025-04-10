@@ -90,3 +90,48 @@
         last-reset: uint
     }
 )
+
+;; UserBatches - Batch processing management
+(define-map UserBatches
+    principal
+    {
+        message-counter: uint,
+        last-batch-timestamp: uint,
+        batch-size: uint,
+        current-batch-items: uint,
+        total-batches: uint
+    }
+)
+
+;; UserActivity - User activity tracking
+(define-map UserActivity
+    principal
+    {
+        last-seen: uint,
+        login-count: uint,
+        total-actions: uint,
+        last-action: uint
+    }
+)
+
+;; Friendships - Relationship management
+(define-map Friendships
+    {
+        user1: principal,
+        user2: principal
+    }
+    {
+        status: uint
+    }
+)
+
+;; BlockedUsers - User blocking management
+(define-map BlockedUsers
+    {
+        blocker: principal,
+        blocked: principal
+    }
+    {
+        timestamp: uint
+    }
+)
