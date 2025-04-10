@@ -222,3 +222,45 @@
         )
     )
 )
+
+;; Utility Functions
+;; ================
+
+;; Maximum of two uints
+(define-private (max-uint (a uint) (b uint))
+    (if (>= a b) a b)
+)
+
+;; Minimum of two uints
+(define-private (min-uint (a uint) (b uint))
+    (if (<= a b) a b)
+)
+
+;; Friendship checker
+(define-private (are-friends (user1 principal) (user2 principal))
+    (match (map-get? Friendships {user1: user1, user2: user2})
+        friendship (is-eq (get status friendship) FRIENDSHIP_ACTIVE)
+        false
+    )
+)
+
+;; User status checker
+(define-private (check-active-user (user principal))
+    (match (map-get? Users user)
+        user-data (and 
+            (is-eq (get status user-data) STATUS_ACTIVE)
+            (is-none (get deactivation-time user-data))
+        )
+        false
+    )
+)
+
+;; User existence checker
+(define-private (user-exists (user principal))
+    (is-some (map-get? Users user))
+)
+
+;; Block status checker
+(define-private (is-blocked (blocker principal) (blocked principal))
+    (is-some (map-get? BlockedUsers {blocker: blocker, blocked: blocked}))
+)
