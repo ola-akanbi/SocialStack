@@ -420,3 +420,34 @@
         (ok true)
     )
 )
+
+;; Login recorder
+(define-public (record-login)
+    (let
+        (
+            (caller tx-sender)
+            (activity (default-to
+                {
+                    last-seen: stacks-block-height,
+                    login-count: u0,
+                    total-actions: u0,
+                    last-action: stacks-block-height
+                }
+                (map-get? UserActivity caller)
+            ))
+        )
+        (map-set UserActivity caller
+            (merge activity {
+                last-seen: stacks-block-height,
+                login-count: (+ (get login-count activity) u1)
+            })
+        )
+        
+        (print {
+            event: "user-login",
+            user: caller,
+            timestamp: stacks-block-height
+        })
+        (ok true)
+    )
+)
