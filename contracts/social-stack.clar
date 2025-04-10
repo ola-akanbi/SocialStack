@@ -264,3 +264,58 @@
 (define-private (is-blocked (blocker principal) (blocked principal))
     (is-some (map-get? BlockedUsers {blocker: blocker, blocked: blocked}))
 )
+
+;; Privacy settings getter
+(define-private (get-privacy-settings (user principal))
+    (default-to
+        {
+            friend-list-visible: true,
+            status-visible: true,
+            metadata-visible: true,
+            last-seen-visible: true,
+            profile-image-visible: true,
+            encryption-enabled: false,
+            last-updated: stacks-block-height
+        }
+        (map-get? UserPrivacy user)
+    )
+)
+
+;; Public Functions
+;; ===============
+
+;; Batch size optimizer
+(define-public (optimize-batch-size (user principal))
+    (let (
+        (batch-data (unwrap-panic (map-get? UserBatches user)))
+        (current-time stacks-block-height)
+        (time-since-last-batch (- current-time (get last-batch-timestamp batch-data)))
+        (current-batch-size (get batch-size batch-data))
+        (items-in-current-batch (get current-batch-items batch-data))
+    )
+        (if (> time-since-last-batch BATCH_EXPIRY_PERIOD)
+            (begin
+                (map-set UserBatches user
+                    (merge batch-data {
+                        batch-size: (max-uint MIN_BATCH_SIZE (/ current-batch-size u2)),
+                        current-batch-items: u0,
+                        last-batch-timestamp: current-time
+                    })
+                )
+                (ok true)
+            )
+            (begin
+                (map-set UserBatches user
+                    (merge batch-data {
+                        batch-size: (min-uint MAX_BATCH_SIZE 
+                            (if (>= items-in-current-batch (/ current-batch-size u2))
+                                (* current-batch-size u2)
+                                current-batch-size
+                            ))
+                    })
+                )
+                (ok true)
+            )
+        )
+    )
+)
